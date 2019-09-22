@@ -18,8 +18,8 @@ jobs:
         with:
           branch: master
           github_token: '${{ secrets.GITHUB_TOKEN  }}'
-          source_folder: publish-to-git
-          target_folder: action
+          source_folder: .github
+          target_folder: test
           dry_run: true
       - shell: bash
         run: test -n "${{ steps.publish.outputs.commit }}"
