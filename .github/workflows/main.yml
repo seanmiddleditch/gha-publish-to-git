@@ -1,6 +1,10 @@
 name: publish-to-git
 
-on: [pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
   test:
@@ -9,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - uses: actions/setup-node@v1
-      - uses: ./publish-to-git
+      - uses: ./
         id: publish
         with:
           branch: master
