@@ -1,0 +1,22 @@
+name: publish-to-git
+
+on: [pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@v1
+      - uses: ./publish-to-git
+        id: publish
+        with:
+          branch: master
+          github_token: '${{ secrets.GITHUB_TOKEN  }}'
+          source_folder: publish-to-git
+          target_folder: action
+          dry_run: true
+      - shell: bash
+        run: test -n "${{ steps.publish.outputs.commit }}"
+
