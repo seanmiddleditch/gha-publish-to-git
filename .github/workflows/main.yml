@@ -22,5 +22,7 @@ jobs:
           target_folder: test
           dry_run: true
       - shell: bash
-        run: test -n "${{ steps.publish.outputs.commit }}"
+        run: |
+          test -n "${{ steps.publish.outputs.commit_hash }}"
+          test -n "${{ steps.publish.outputs.working_directory }}"
 
