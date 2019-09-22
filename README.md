@@ -11,7 +11,7 @@ steps, such as [Doxygen](http://www.doxygen.nl/) generated HTML files.
 **NOTE**: GitHub currently requires the use of a Personal Access Token for
 pushing to other repositories. Pushing to the current repository should work
 with the always-available GitHub Token (available via
-`{{ secrets.GITHUB_TOKEN }}`.) If pushing to another repository, a Personal
+`{{ secrets.GITHUB_TOKEN }}`. If pushing to another repository, a Personal
 Access Token will need to be [created](https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line) and assigned to the
 workflow [secrets](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables).
 
@@ -28,11 +28,13 @@ Inputs
 - `commit_author`: Override commit author (default: `{github.actor}@users.noreply.github.com`).
 - `commit_message`: Set commit message (default: `[workflow] Publish from [repository]:[branch]/[folder]`).
 - `dry_run`: Does not push if non-empty (default: empty).
+- `working_directory`: Location to checkout repository (default: random location in `${HOME}`)
 
 Outputs
 -------
 
 - `commit_hash`: SHA hash of the new commit.
+- `working_directory`: Working directory of git clone of repository.
 
 License
 -------

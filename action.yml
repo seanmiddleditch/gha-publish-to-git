@@ -35,9 +35,14 @@ inputs:
   dry_run:
     description: 'Do not push to repository (set to non-empty string to make dry-run)'
     default: ''
+  working_directory:
+    description: 'Working directory for clone (default: random location in `${HOME}`)'
+    default: ''
 outputs:
   commit_hash:
     description: 'Hash of the new commit'
+  working_directory:
+    description: 'Working directory of temporary repository'
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -52,3 +57,4 @@ runs:
     - ${{ inputs.commit_author }}
     - ${{ inputs.commit_message }}
     - ${{ inputs.dry_run }}
+    - ${{ inputs.working_directory }}

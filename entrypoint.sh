@@ -12,6 +12,7 @@ INPUT_TARGET_FOLDER="$7"
 INPUT_COMMIT_AUTHOR="$8"
 INPUT_COMMIT_MESSAGE="$9"
 INPUT_DRYRUN="${10}"
+INPUT_WORKDIR="${11}"
 
 # Check for required inputs.
 #
@@ -48,8 +49,7 @@ echo "Publishing ${SOURCE_FOLDER} to ${REMOTE}:${BRANCH}/${TARGET_FOLDER}"
 # Create a working directory; the workspace may be filled with other important
 # files.
 #
-WORK_DIR="$(mktemp -d "$(pwd)/gitrepo.XXXXXX")"
-echo "Created ${WORK_DIR} temporary"
+WORK_DIR="${INPUT_WORKDIR:-$(mktemp -d "${HOME}/gitrepo.XXXXXX")}"
 [ -z "${WORK_DIR}" ] && echo >&2 "::error::Failed to create temporary working directory" && exit 1
 cd "${WORK_DIR}"
 
@@ -83,9 +83,10 @@ git commit -m "${COMMIT_MESSAGE}" --author "${COMMIT_AUTHOR}" || exit 1
 COMMIT_HASH="$(git rev-parse HEAD)"
 echo "Created commit ${COMMIT_HASH}"
 
-# Publish the commit_hash output for github.
+# Publish output variables.
 #
 echo "::set-output name=commit_hash::${COMMIT_HASH}"
+echo "::set-output name=working_directory::${WORK_DIR}"
 
 # Push if not a dry-run.
 #
