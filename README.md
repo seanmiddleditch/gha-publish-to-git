@@ -8,12 +8,9 @@ This can be especially useful for publishing static website, such as with
 [GitHub Pages](https://pages.github.com/), from built files in other job
 steps, such as [Doxygen](http://www.doxygen.nl/) generated HTML files.
 
-**NOTE**: GitHub currently requires the use of a Personal Access Token for
-pushing to other repositories. Pushing to the current repository should work
-with the always-available GitHub Token (available via
-`{{ secrets.GITHUB_TOKEN }}`. If pushing to another repository, a Personal
-Access Token will need to be [created](https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line) and assigned to the
-workflow [secrets](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables).
+**NOTE**: You'll need a Personal Access Token if you want to push to another
+repo or have Two-factor authentication set up. You'll need to [create](https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line) a
+Personal Access Token and use it as a workflow [secrets](https://help.github.com/en/articles/virtual-environments-for-github-actions#creating-and-using-secrets-encrypted-variables).
 
 Inputs
 ------
