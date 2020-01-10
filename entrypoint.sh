@@ -73,7 +73,7 @@ git pull origin "${BRANCH}" || exit 1
 TARGET_PATH="${WORK_DIR}/${TARGET_FOLDER}"
 echo "Populating ${TARGET_PATH}"
 mkdir -p "${TARGET_PATH}" || exit 1
-rsync -a --quiet --delete "${SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
+rsync -a --quiet --delete --exclude ".git" "${SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
 
 # Create commit with changes.
 #
