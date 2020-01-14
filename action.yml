@@ -38,6 +38,9 @@ inputs:
   working_directory:
     description: 'Working directory for clone (default: random location in `${HOME}`)'
     default: ''
+  remote:
+    description: 'Remote repository'
+    default: ''
 outputs:
   commit_hash:
     description: 'Hash of the new commit'
@@ -58,3 +61,4 @@ runs:
     - ${{ inputs.commit_message }}
     - ${{ inputs.dry_run }}
     - ${{ inputs.working_directory }}
+    - ${{ inputs.remote }}

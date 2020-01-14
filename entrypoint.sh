@@ -13,6 +13,7 @@ INPUT_COMMIT_AUTHOR="$8"
 INPUT_COMMIT_MESSAGE="$9"
 INPUT_DRYRUN="${10}"
 INPUT_WORKDIR="${11}"
+INPUT_REMOTE="${12}"
 
 # Check for required inputs.
 #
