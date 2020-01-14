@@ -22,7 +22,7 @@ inputs:
     default: ''
   source_folder:
     description: 'Source folder in workspace to copy (default: workspace root)'
-    defaault: ''
+    default: ''
   target_folder:
     description: 'Target folder in destination branch to copy to (default: repository root)'
     default: ''
