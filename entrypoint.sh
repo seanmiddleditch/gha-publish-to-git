@@ -13,6 +13,7 @@ INPUT_COMMIT_AUTHOR="$8"
 INPUT_COMMIT_MESSAGE="$9"
 INPUT_DRYRUN="${10}"
 INPUT_WORKDIR="${11}"
+INPUT_REMOTE="${12}"
 
 # Check for required inputs.
 #
@@ -23,9 +24,10 @@ INPUT_WORKDIR="${11}"
 #
 REPOSITORY="${INPUT_REPOSITORY:-${GITHUB_REPOSITORY}}"
 BRANCH="${INPUT_BRANCH}"
-HOST="${INPUT_GIT_HOST:-github.com}"
+HOST="${INPUT_HOST:-github.com}"
 TOKEN="${INPUT_GITHUB_PAT:-${INPUT_GITHUB_TOKEN}}"
 REMOTE="${INPUT_REMOTE:-https://${TOKEN}@${HOST}/${REPOSITORY}.git}"
+REMOTE_WITHOUT_TOKEN="https://${HOST}/${REPOSITORY}.git"
 
 SOURCE_FOLDER="${INPUT_SOURCE_FOLDER:-.}"
 TARGET_FOLDER="${INPUT_TARGET_FOLDER}"
@@ -55,15 +57,15 @@ cd "${WORK_DIR}"
 
 # Initialize git repo and configure for remote access.
 #
-echo "Initializing repository with remote ${REMOTE}"
+echo "Initializing repository with remote ${REMOTE_WITHOUT_TOKEN}"
 git init || exit 1
 git config --local user.email "${GITHUB_ACTOR}@users.noreply.github.com" || exit 1
 git config --local user.name  "${GITHUB_ACTOR}" || exit 1
-git remote add origin "${REMOTE}" || exit 1
+git remote add origin "${REMOTE_WITHOUT_TOKEN}" || exit 1
 
 # Fetch initial (current contents).
 #
-echo "Fetching ${REMOTE}:${BRANCH}"
+echo "Fetching ${REMOTE_WITHOUT_TOKEN}:${BRANCH}"
 git fetch --depth 1 origin "${BRANCH}" || exit 1
 git checkout -b "${BRANCH}" || exit 1
 git pull origin "${BRANCH}" || exit 1
@@ -73,10 +75,12 @@ git pull origin "${BRANCH}" || exit 1
 TARGET_PATH="${WORK_DIR}/${TARGET_FOLDER}"
 echo "Populating ${TARGET_PATH}"
 mkdir -p "${TARGET_PATH}" || exit 1
-rsync -a --quiet --delete "${SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
+rsync -a --quiet --delete "." "${TARGET_PATH}" || exit 1
+# rsync -a --quiet --delete "${SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
 
 # Create commit with changes.
 #
+echo "${ls -a}"
 echo "Creating commit"
 git add "${TARGET_PATH}" || exit 1
 git commit -m "${COMMIT_MESSAGE}" --author "${COMMIT_AUTHOR}" || exit 1

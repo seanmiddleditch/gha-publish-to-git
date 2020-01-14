@@ -22,7 +22,7 @@ inputs:
     default: ''
   source_folder:
     description: 'Source folder in workspace to copy (default: workspace root)'
-    defaault: ''
+    default: ''
   target_folder:
     description: 'Target folder in destination branch to copy to (default: repository root)'
     default: ''
@@ -37,6 +37,9 @@ inputs:
     default: ''
   working_directory:
     description: 'Working directory for clone (default: random location in `${HOME}`)'
+    default: ''
+  remote:
+    description: 'Remote repository'
     default: ''
 outputs:
   commit_hash:
@@ -58,3 +61,4 @@ runs:
     - ${{ inputs.commit_message }}
     - ${{ inputs.dry_run }}
     - ${{ inputs.working_directory }}
+    - ${{ inputs.remote }}
