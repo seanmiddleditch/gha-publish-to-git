@@ -38,6 +38,12 @@ inputs:
   working_directory:
     description: 'Working directory for clone (default: random location in `${HOME}`)'
     default: ''
+  initial_source_folder:
+    description: 'Source folder in workspace to copy if branch didnt exist (default: source_folder value)'
+    default: ''
+  initial_commit_message:
+    description: 'Commit message if branch didnt exist'
+    default: 'Initial commit'
 outputs:
   commit_hash:
     description: 'Hash of the new commit'
@@ -58,3 +64,5 @@ runs:
     - ${{ inputs.commit_message }}
     - ${{ inputs.dry_run }}
     - ${{ inputs.working_directory }}
+    - ${{ inputs.initial_source_folder }}
+    - ${{ inputs.initial_commit_message }}

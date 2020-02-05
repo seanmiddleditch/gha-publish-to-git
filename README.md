@@ -29,6 +29,8 @@ Inputs
 - `commit_message`: Set commit message (default: `[workflow] Publish from [repository]:[branch]/[folder]`).
 - `dry_run`: Does not push if non-empty (default: empty).
 - `working_directory`: Location to checkout repository (default: random location in `${HOME}`)
+- `initial_source_folder`: Source folder in workspace to copy if branch didn't exist (default: `source_folder` value)
+- `initial_commit_message`: Commit message if branch didn't exist (default: `Initial commit`)
 
 Outputs
 -------
