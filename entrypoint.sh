@@ -13,6 +13,8 @@ INPUT_COMMIT_AUTHOR="$8"
 INPUT_COMMIT_MESSAGE="$9"
 INPUT_DRYRUN="${10}"
 INPUT_WORKDIR="${11}"
+INPUT_INITIAL_SOURCE_FOLDER="${12}"
+INPUT_INITIAL_COMMIT_MESSAGE="${13}"
 
 # Check for required inputs.
 #
@@ -28,6 +30,7 @@ TOKEN="${INPUT_GITHUB_PAT:-${INPUT_GITHUB_TOKEN}}"
 REMOTE="${INPUT_REMOTE:-https://${TOKEN}@${HOST}/${REPOSITORY}.git}"
 
 SOURCE_FOLDER="${INPUT_SOURCE_FOLDER:-.}"
+INITIAL_SOURCE_FOLDER="${INPUT_INITIAL_SOURCE_FOLDER:-${SOURCE_FOLDER}}"
 TARGET_FOLDER="${INPUT_TARGET_FOLDER}"
 
 REF="${GITHUB_BASE_REF:-${GITHUB_REF}}"
@@ -36,12 +39,16 @@ REF_BRANCH=$(echo "${REF}" | rev | cut -d/ -f1 | rev)
 
 COMMIT_AUTHOR="${INPUT_AUTHOR:-${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>}"
 COMMIT_MESSAGE="${INPUT_COMMIT_MESSAGE:-[${GITHUB_WORKFLOW}] Publish from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}}"
+INITIAL_COMMIT_MESSAGE="${INPUT_INITIAL_COMMIT_MESSAGE}"
 
 # Calculate the real source path.
 #
 SOURCE_PATH="$(realpath "${SOURCE_FOLDER}")"
+INITIAL_SOURCE_PATH="$(realpath "${INITIAL_SOURCE_FOLDER}")"
 [ -z "${SOURCE_PATH}" ] && exit 1
+[ -z "${INITIAL_SOURCE_PATH}" ] && exit 1
 echo "::debug::SOURCE_PATH=${SOURCE_PATH}"
+echo "::debug::INITIAL_SOURCE_PATH=${INITIAL_SOURCE_PATH}"
 
 # Let's start doing stuff.
 echo "Publishing ${SOURCE_FOLDER} to ${REMOTE}:${BRANCH}/${TARGET_FOLDER}"
@@ -64,9 +71,31 @@ git remote add origin "${REMOTE}" || exit 1
 # Fetch initial (current contents).
 #
 echo "Fetching ${REMOTE}:${BRANCH}"
-git fetch --depth 1 origin "${BRANCH}" || exit 1
-git checkout -b "${BRANCH}" || exit 1
-git pull origin "${BRANCH}" || exit 1
+if [ "$(git ls-remote --heads "${REMOTE}" "${BRANCH}"  | wc -l)" == 0 ] ; then 
+    echo "Initialising ${BRANCH} branch"
+    git checkout --orphan ${BRANCH}
+    TARGET_PATH="${WORK_DIR}/${TARGET_FOLDER}"
+    echo "Populating ${TARGET_PATH}"
+    mkdir -p "${TARGET_PATH}" || exit 1
+    rsync -a --quiet --delete --exclude ".git" "${INITIAL_SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
+
+    echo "Creating initial commit"
+    git add "${TARGET_PATH}" || exit 1
+    git commit -m "${INITIAL_COMMIT_MESSAGE}" --author "${COMMIT_AUTHOR}" || exit 1
+    COMMIT_HASH="$(git rev-parse HEAD)"
+    echo "Created commit ${COMMIT_HASH}"
+
+    if [ -z "${INPUT_DRYRUN}" ] ; then
+        echo "Pushing to ${REMOTE}:${BRANCH}"
+        git push origin "${BRANCH}" || exit 1
+    else
+        echo "[DRY-RUN] Not pushing to ${REMOTE}:${BRANCH}"
+    fi
+else
+    git fetch --depth 1 origin "${BRANCH}" || exit 1
+    git checkout -b "${BRANCH}" || exit 1
+    git pull origin "${BRANCH}" || exit 1
+fi
 
 # Create the target directory (if necessary) and copy files from source.
 #
