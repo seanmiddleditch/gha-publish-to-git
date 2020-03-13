@@ -106,9 +106,7 @@ rsync -a --quiet --delete --exclude ".git" "${SOURCE_PATH}/" "${TARGET_PATH}" ||
 
 # Check changes
 #
-CHANGED="$(git status -s)"
-
-if [ ! -z "${CHANGED}" ] ; then
+if [ -z "$(git status -s)" ] ; then
     echo "No changes, script exited"
     exit 0
 fi
