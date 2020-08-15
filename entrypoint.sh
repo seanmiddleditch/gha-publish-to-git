@@ -104,6 +104,13 @@ echo "Populating ${TARGET_PATH}"
 mkdir -p "${TARGET_PATH}" || exit 1
 rsync -a --quiet --delete --exclude ".git" "${SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
 
+# Check changes
+#
+if [ -z "$(git status -s)" ] ; then
+    echo "No changes, script exited"
+    exit 0
+fi
+
 # Create commit with changes.
 #
 echo "Creating commit"
