@@ -1,5 +1,5 @@
 ---
-name: publish-to-git
+name: publish-artifact-to-git
 description: 'Publish files to a git repository'
 branding:
   icon: 'git-commit'
