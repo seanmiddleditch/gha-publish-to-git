@@ -15,6 +15,7 @@ INPUT_DRYRUN="${10}"
 INPUT_WORKDIR="${11}"
 INPUT_INITIAL_SOURCE_FOLDER="${12}"
 INPUT_INITIAL_COMMIT_MESSAGE="${13}"
+INPUT_NO_DELETE="${14}"
 
 # Check for required inputs.
 #
@@ -77,7 +78,11 @@ if [ "$(git ls-remote --heads "${REMOTE}" "${BRANCH}"  | wc -l)" == 0 ] ; then
     TARGET_PATH="${WORK_DIR}/${TARGET_FOLDER}"
     echo "Populating ${TARGET_PATH}"
     mkdir -p "${TARGET_PATH}" || exit 1
-    rsync -a --quiet --delete --exclude ".git" "${INITIAL_SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
+    if [ -z "$INPUT_NO_DELETE" ] ; then
+        rsync -a --quiet --delete --exclude ".git" "${INITIAL_SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
+    else
+        rsync -a --quiet --exclude ".git" "${INITIAL_SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
+    fi
 
     echo "Creating initial commit"
     git add "${TARGET_PATH}" || exit 1
@@ -102,7 +107,12 @@ fi
 TARGET_PATH="${WORK_DIR}/${TARGET_FOLDER}"
 echo "Populating ${TARGET_PATH}"
 mkdir -p "${TARGET_PATH}" || exit 1
-rsync -a --quiet --delete --exclude ".git" "${SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
+
+if [ -z "$INPUT_NO_DELETE" ] ; then
+    rsync -a --quiet --delete --exclude ".git" "${SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
+else
+    rsync -a --quiet --exclude ".git" "${SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
+fi
 
 # Check changes
 #

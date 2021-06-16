@@ -44,6 +44,9 @@ inputs:
   initial_commit_message:
     description: 'Commit message if branch didnt exist'
     default: 'Initial commit'
+  no_delete:
+    description: 'Do not delete files from the destination repository if they are not exist in source folder (set to non-empty string to skip file removing)'
+    default: ''
 outputs:
   commit_hash:
     description: 'Hash of the new commit'
@@ -66,3 +69,4 @@ runs:
     - ${{ inputs.working_directory }}
     - ${{ inputs.initial_source_folder }}
     - ${{ inputs.initial_commit_message }}
+    - ${{ inputs.no_delete }}
