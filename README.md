@@ -31,6 +31,8 @@ Inputs
 - `working_directory`: Location to checkout repository (default: random location in `${HOME}`)
 - `initial_source_folder`: Source folder in workspace to copy if branch didn't exist (default: `source_folder` value)
 - `initial_commit_message`: Commit message if branch didn't exist (default: `Initial commit`)
+- `no_delete`: Do not delete files from the destination repository if they are not exist in source folder (set to non-empty string to skip file removing)
+    
 
 Outputs
 -------
