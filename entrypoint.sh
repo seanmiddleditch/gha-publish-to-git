@@ -78,7 +78,7 @@ if [ "$(git ls-remote --heads "${REMOTE}" "${BRANCH}"  | wc -l)" == 0 ] ; then
     TARGET_PATH="${WORK_DIR}/${TARGET_FOLDER}"
     echo "Populating ${TARGET_PATH}"
     mkdir -p "${TARGET_PATH}" || exit 1
-    if [ -z "$INPUT_DELETE" ] ; then
+    if [ -z "$INPUT_NO_DELETE" ] ; then
         rsync -a --quiet --delete --exclude ".git" "${INITIAL_SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
     else
         rsync -a --quiet --exclude ".git" "${INITIAL_SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
@@ -108,7 +108,7 @@ TARGET_PATH="${WORK_DIR}/${TARGET_FOLDER}"
 echo "Populating ${TARGET_PATH}"
 mkdir -p "${TARGET_PATH}" || exit 1
 
-if [ -z "$INPUT_DELETE" ] ; then
+if [ -z "$INPUT_NO_DELETE" ] ; then
     rsync -a --quiet --delete --exclude ".git" "${SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
 else
     rsync -a --quiet --exclude ".git" "${SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
