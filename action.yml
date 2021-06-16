@@ -45,7 +45,7 @@ inputs:
     description: 'Commit message if branch didnt exist'
     default: 'Initial commit'
   no_delete:
-    description: 'Do not delete files from the destination repository if they are not exist in source folder (set to non-empty string to skip file removing)"
+    description: 'Do not delete files from the destination repository if they are not exist in source folder (set to non-empty string to skip file removing)'
     default: ''
 outputs:
   commit_hash:
