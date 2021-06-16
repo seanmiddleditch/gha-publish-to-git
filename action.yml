@@ -2,8 +2,8 @@
 name: publish-artifact-to-git
 description: 'Publish files to a git repository'
 branding:
-  icon: 'git-commit'
-  color: 'blue'
+  icon: 'package'
+  color: 'red'
 inputs:
   repository:
     description: 'Destination repository (default: current repository)'
