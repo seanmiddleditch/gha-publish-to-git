@@ -1,8 +1,6 @@
 FROM alpine:3
 
-RUN apk add --no-cache rsync git bash
-RUN apt-get update
-RUN apt-get install git-lfs
+RUN apk add --no-cache rsync git bash git-lfs
 
 COPY entrypoint.sh /entrypoint.sh
 
