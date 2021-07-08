@@ -9,13 +9,15 @@ INPUT_GITHUB_TOKEN="$4"
 INPUT_GITHUB_PAT="$5"
 INPUT_SOURCE_FOLDER="$6"
 INPUT_TARGET_FOLDER="$7"
-INPUT_COMMIT_AUTHOR="$8"
-INPUT_COMMIT_MESSAGE="$9"
-INPUT_DRYRUN="${10}"
-INPUT_WORKDIR="${11}"
-INPUT_INITIAL_SOURCE_FOLDER="${12}"
-INPUT_INITIAL_COMMIT_MESSAGE="${13}"
+INPUT_COMMIT_USER_NAME="$8"
+INPUT_COMMIT_USER_EMAIL="$9"
+INPUT_COMMIT_MESSAGE="$10"
+INPUT_DRYRUN="${11}"
+INPUT_WORKDIR="${12}"
+INPUT_INITIAL_SOURCE_FOLDER="${13}"
+INPUT_INITIAL_COMMIT_MESSAGE="${14}"
 
+echo "INPUT_COMMIT_USER_EMAIL: {$INPUT_COMMIT_USER_EMAIL}"
 echo "INPUT_REPOSITORY: {$INPUT_REPOSITORY}"
 echo "INPUT_HOST: {$INPUT_HOST}"
 
@@ -40,7 +42,10 @@ REF="${GITHUB_BASE_REF:-${GITHUB_REF}}"
 REF_BRANCH=$(echo "${REF}" | rev | cut -d/ -f1 | rev)
 [ -z "$REF_BRANCH" ] && echo 2>&1 "No ref branch" && exit 1
 
-COMMIT_AUTHOR="${INPUT_COMMIT_AUTHOR:-${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>}"
+COMMIT_EMAIL="${INPUT_COMMIT_USER_EMAIL:-${GITHUB_ACTOR}@users.noreply.github.com}"
+echo "COMMIT_EMAIL: {$COMMIT_EMAIL}"
+
+COMMIT_AUTHOR="${INPUT_COMMIT_AUTHOR:-${GITHUB_ACTOR} <${COMMIT_EMAIL}>}"
 COMMIT_MESSAGE="${INPUT_COMMIT_MESSAGE:-[${GITHUB_WORKFLOW}] Publish from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}}"
 INITIAL_COMMIT_MESSAGE="${INPUT_INITIAL_COMMIT_MESSAGE}"
 
@@ -67,8 +72,8 @@ cd "${WORK_DIR}"
 #
 echo "Initializing repository with remote ${REMOTE}"
 git init || exit 1
-git config --local user.email "${GITHUB_ACTOR}@users.noreply.github.com" || exit 1
-git config --local user.name  "${GITHUB_ACTOR}" || exit 1
+git config --local user.email "${COMMIT_EMAIL}" || exit 1
+git config --local user.name  "${COMMIT_AUTHOR}" || exit 1
 git remote add origin "${REMOTE}" || exit 1
 
 # Fetch initial (current contents).
