@@ -27,8 +27,11 @@ inputs:
     description: 'Target folder in destination branch to copy to (default: repository root)'
     default: ''
   commit_author:
-    description: 'User Name <email@address> (default: [github.actor]@users.noreply.github.com)'
+    description: 'User Name (default: [github.actor])'
     default: ''
+  commit_email:
+    description: 'email@address (default: [github.actor]@users.noreply.github.com)'
+    default: ''    
   commit_message:
     description: 'Commit message (default: [workflow] Publish from [repository]:[branch]/[folder])'
     default: ''
