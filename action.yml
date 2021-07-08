@@ -64,6 +64,7 @@ runs:
     - ${{ inputs.source_folder }}
     - ${{ inputs.target_folder }}
     - ${{ inputs.commit_author }}
+    - ${{ inputs.commit_email }}
     - ${{ inputs.commit_message }}
     - ${{ inputs.dry_run }}
     - ${{ inputs.working_directory }}
