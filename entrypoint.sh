@@ -15,6 +15,8 @@ INPUT_DRYRUN="${10}"
 INPUT_WORKDIR="${11}"
 INPUT_INITIAL_SOURCE_FOLDER="${12}"
 INPUT_INITIAL_COMMIT_MESSAGE="${13}"
+INPUT_IS_TAG="${14}"
+GITHUB_REF="${15}"
 
 # Check for required inputs.
 #
@@ -37,7 +39,7 @@ REF="${GITHUB_BASE_REF:-${GITHUB_REF}}"
 REF_BRANCH=$(echo "${REF}" | rev | cut -d/ -f1 | rev)
 [ -z "$REF_BRANCH" ] && echo 2>&1 "No ref branch" && exit 1
 
-COMMIT_AUTHOR="${INPUT_AUTHOR:-${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>}"
+COMMIT_AUTHOR="${INPUT_COMMIT_AUTHOR:-${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>}"
 COMMIT_MESSAGE="${INPUT_COMMIT_MESSAGE:-[${GITHUB_WORKFLOW}] Publish from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}} REV:${GITHUB_SHA}"
 INITIAL_COMMIT_MESSAGE="${INPUT_INITIAL_COMMIT_MESSAGE}"
 
@@ -64,9 +66,13 @@ cd "${WORK_DIR}"
 #
 echo "Initializing repository with remote ${REMOTE}"
 git init || exit 1
-git config --local user.email "${GITHUB_ACTOR}@users.noreply.github.com" || exit 1
-git config --local user.name  "${GITHUB_ACTOR}" || exit 1
+ls
+git config --global user.email "${COMMIT_AUTHOR}@users.noreply.github.com" || exit 1
+echo "git config --global user.email ${COMMIT_AUTHOR}@users.noreply.github.com"
+git config --global user.name "${COMMIT_AUTHOR}" || exit 1
+echo "git config --global user.name  ${COMMIT_AUTHOR}"
 git remote add origin "${REMOTE}" || exit 1
+git config --global --list
 
 # Fetch initial (current contents).
 #
@@ -81,7 +87,7 @@ if [ "$(git ls-remote --heads "${REMOTE}" "${BRANCH}"  | wc -l)" == 0 ] ; then
 
     echo "Creating initial commit"
     git add "${TARGET_PATH}" || exit 1
-    git commit -m "${INITIAL_COMMIT_MESSAGE}" --author "${COMMIT_AUTHOR}" || exit 1
+    git commit -m "${INITIAL_COMMIT_MESSAGE}" --author "${COMMIT_AUTHOR} <${COMMIT_AUTHOR}@users.noreply.github.com>" || exit 1
     COMMIT_HASH="$(git rev-parse HEAD)"
     echo "Created commit ${COMMIT_HASH}"
 
@@ -115,7 +121,7 @@ fi
 #
 echo "Creating commit"
 git add "${TARGET_PATH}" || exit 1
-git commit -m "${COMMIT_MESSAGE}" --author "${COMMIT_AUTHOR}" || exit 1
+git commit -m "${COMMIT_MESSAGE}" --author "${COMMIT_AUTHOR} <${COMMIT_AUTHOR}@users.noreply.github.com>" || exit 1
 COMMIT_HASH="$(git rev-parse HEAD)"
 echo "Created commit ${COMMIT_HASH}"
 
