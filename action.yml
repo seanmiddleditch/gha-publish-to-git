@@ -47,7 +47,7 @@ inputs:
   is_tag:
     description: 'Is Tag Push  (set to non-empty string to make tag)'
     default: ''
-  github_ref:
+  git_ref:
     description: 'GitHub Reference ${{ github.ref }}'
     default: ''
 outputs:
@@ -73,4 +73,4 @@ runs:
     - ${{ inputs.initial_source_folder }}
     - ${{ inputs.initial_commit_message }}
     - ${{ inputs.is_tag }}
-    - ${{ inputs.github_ref }}
+    - ${{ inputs.git_ref }}
