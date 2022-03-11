@@ -45,6 +45,7 @@ TAG_VALUE=${GITHUB_REF/refs\/tags\//}
 if [[ "$GITHUB_REF" == "${GITHUB_REF/refs\/tags\//}"  ]]; then
   IS_TAG=""
 else
+  GIT_TAG_MESSAGE=$(git tag -l --format='%(contents)' "${TAG_VALUE}")
   BRANCH=$INPUT_TAG_BRANCH
   IS_TAG="TRUE"
 fi
@@ -128,7 +129,6 @@ rsync -a --quiet --delete --exclude ".git" "${SOURCE_PATH}/" "${TARGET_PATH}" ||
 #
 if [ -z "$(git status -s)" ] ; then
    if [ "${IS_TAG}" = "TRUE" ] ; then
-     GIT_TAG_MESSAGE=$(git tag -l --format='%(contents)' "${TAG_VALUE}")
      git tag "${TAG_VALUE}" -m "$GIT_TAG_MESSAGE"
      if [ -z "${INPUT_DRYRUN}" ] ; then
        echo "Pushing to tag ${REMOTE}:${TAG_VALUE}"
@@ -164,7 +164,6 @@ else
 fi
 
 if [ "${IS_TAG}" = "TRUE" ]; then
-  GIT_TAG_MESSAGE=$(git tag -l --format='%(contents)' "${TAG_VALUE}")
   git tag "${TAG_VALUE}" -m "$GIT_TAG_MESSAGE"
  if [ -z "${INPUT_DRYRUN}" ] ; then
    echo "Pushing to tag ${REMOTE}:${TAG_VALUE}"
