@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 # Name the Docker inputs.
 #
@@ -42,7 +42,7 @@ REF_BRANCH=$(echo "${REF}" | rev | cut -d/ -f1 | rev)
 [ -z "$REF_BRANCH" ] && echo 2>&1 "No ref branch" && exit 1
 
 TAG_VALUE=${GITHUB_REF/refs\/tags\//}
-if [[ "$GITHUB_REF" == ${GITHUB_REF/refs\/tags\//}  ]]; then
+if [[ "$GITHUB_REF" == "${GITHUB_REF/refs\/tags\//}"  ]]; then
   IS_TAG=""
 else
   BRANCH=$INPUT_TAG_BRANCH
@@ -55,7 +55,7 @@ COMMIT_MESSAGE="${INPUT_COMMIT_MESSAGE:-[${GITHUB_WORKFLOW}] Publish
 from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}} REV:${GITHUB_SHA}"
 INITIAL_COMMIT_MESSAGE="${INPUT_INITIAL_COMMIT_MESSAGE}
 
-from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}} REV:${GITHUB_SHA}"
+from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER} REV:${GITHUB_SHA}"
 
 # Calculate the real source path.
 #
@@ -93,7 +93,7 @@ git config --global --list
 echo "Fetching ${REMOTE}:${BRANCH}"
 if [ "$(git ls-remote --heads "${REMOTE}" "${BRANCH}"  | wc -l)" == 0 ] ; then 
     echo "Initialising ${BRANCH} branch"
-    git checkout --orphan ${BRANCH}
+    git checkout --orphan "${BRANCH}"
     TARGET_PATH="${WORK_DIR}/${TARGET_FOLDER}"
     echo "Populating ${TARGET_PATH}"
     mkdir -p "${TARGET_PATH}" || exit 1
@@ -127,11 +127,11 @@ rsync -a --quiet --delete --exclude ".git" "${SOURCE_PATH}/" "${TARGET_PATH}" ||
 # Check changes
 #
 if [ -z "$(git status -s)" ] ; then
-   if [ "${IS_TAG}" = "TRUE"] ; then
-     git tag ${TAG_VALUE}
+   if [ "${IS_TAG}" = "TRUE" ] ; then
+     git tag "${TAG_VALUE}"
      if [ -z "${INPUT_DRYRUN}" ] ; then
        echo "Pushing to tag ${REMOTE}:${TAG_VALUE}"
-       git push origin ${TAG_VALUE}
+       git push origin "${TAG_VALUE}"
        else
            echo "[DRY-RUN] Not pushing tag to ${REMOTE}:${TAG_VALUE}"
        fi
@@ -162,11 +162,11 @@ else
     echo "[DRY-RUN] Not pushing to ${REMOTE}:${BRANCH}"
 fi
 
-if [ "${IS_TAG}" = "TRUE"] ; then
- git tag ${TAG_VALUE}
+if [ "${IS_TAG}" = "TRUE" ]; then
+ git tag "${TAG_VALUE}"
  if [ -z "${INPUT_DRYRUN}" ] ; then
    echo "Pushing to tag ${REMOTE}:${TAG_VALUE}"
-   git push origin ${TAG_VALUE}
+   git push origin "${TAG_VALUE}"
    else
        echo "[DRY-RUN] Not pushing tag to ${REMOTE}:${TAG_VALUE}"
    fi
