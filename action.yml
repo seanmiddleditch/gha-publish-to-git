@@ -48,7 +48,7 @@ inputs:
     description: 'Is Tag Push  (set to non-empty string to make tag)'
     default: ''
   git_ref:
-    description: 'GitHub Reference ${{ github.ref }}'
+    description: 'GitHub Reference ${ { github.ref } }'
     default: ''
 outputs:
   commit_hash:
