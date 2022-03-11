@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 # Name the Docker inputs.
 #
 INPUT_REPOSITORY="$1"
@@ -45,18 +46,25 @@ TAG_VALUE=${GITHUB_REF/refs\/tags\//}
 if [[ "$GITHUB_REF" == "${GITHUB_REF/refs\/tags\//}"  ]]; then
   IS_TAG=""
 else
+  git fetch --depth=1 origin +refs/tags/*:refs/tags/*
   GIT_TAG_MESSAGE=$(git tag -l --format='%(contents)' "${TAG_VALUE}")
   BRANCH=$INPUT_TAG_BRANCH
   IS_TAG="TRUE"
 fi
 
 COMMIT_AUTHOR="${INPUT_COMMIT_AUTHOR:-${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>}"
+GIT_MESSAGE=$(git log -1 --pretty=format:%B)
 COMMIT_MESSAGE="${INPUT_COMMIT_MESSAGE:-[${GITHUB_WORKFLOW}] Publish
 
-from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}} REV:${GITHUB_SHA}"
+
+from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}} REV:${GITHUB_SHA}
+
+${GIT_MESSAGE}"
 INITIAL_COMMIT_MESSAGE="${INPUT_INITIAL_COMMIT_MESSAGE}
 
-from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER} REV:${GITHUB_SHA}"
+from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER} REV:${GITHUB_SHA}
+
+${GIT_MESSAGE}"
 
 # Calculate the real source path.
 #
