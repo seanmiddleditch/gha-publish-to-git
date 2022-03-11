@@ -45,17 +45,20 @@ TAG_VALUE=${GITHUB_REF/refs\/tags\//}
 if [[ "$GITHUB_REF" == ${GITHUB_REF/refs\/tags\//}  ]]; then
   IS_TAG=""
 else
+  BRANCH=$INPUT_TAG_BRANCH
   IS_TAG="TRUE"
 fi
-if [[ "$GITHUB_REF" == ${BRANCH}  ]]; then
-  BRANCH=$BRANCH
-else
-  BRANCH=$INPUT_TAG_BRANCH
+
+
 fi
 
 COMMIT_AUTHOR="${INPUT_COMMIT_AUTHOR:-${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>}"
-COMMIT_MESSAGE="${INPUT_COMMIT_MESSAGE:-[${GITHUB_WORKFLOW}] Publish \r\n\r\nfrom ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}} REV:${GITHUB_SHA}"
-INITIAL_COMMIT_MESSAGE="${INPUT_INITIAL_COMMIT_MESSAGE} \r\n\r\nfrom ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}} REV:${GITHUB_SHA}"
+COMMIT_MESSAGE="${INPUT_COMMIT_MESSAGE:-[${GITHUB_WORKFLOW}] Publish
+
+from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}} REV:${GITHUB_SHA}"
+INITIAL_COMMIT_MESSAGE="${INPUT_INITIAL_COMMIT_MESSAGE}
+
+from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}} REV:${GITHUB_SHA}"
 
 # Calculate the real source path.
 #
@@ -127,7 +130,7 @@ rsync -a --quiet --delete --exclude ".git" "${SOURCE_PATH}/" "${TARGET_PATH}" ||
 # Check changes
 #
 if [ -z "$(git status -s)" ] ; then
-   if [ "${IS_TAG}" == "TRUE"] ; then
+   if [ "${IS_TAG}" = "TRUE"] ; then
      git tag ${TAG_VALUE}
      if [ -z "${INPUT_DRYRUN}" ] ; then
        echo "Pushing to tag ${REMOTE}:${TAG_VALUE}"
@@ -162,7 +165,7 @@ else
     echo "[DRY-RUN] Not pushing to ${REMOTE}:${BRANCH}"
 fi
 
-if [ "${IS_TAG}" == "TRUE"] ; then
+if [ "${IS_TAG}" = "TRUE"] ; then
  git tag ${TAG_VALUE}
  if [ -z "${INPUT_DRYRUN}" ] ; then
    echo "Pushing to tag ${REMOTE}:${TAG_VALUE}"
