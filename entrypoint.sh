@@ -15,8 +15,10 @@ INPUT_DRYRUN="${10}"
 INPUT_WORKDIR="${11}"
 INPUT_INITIAL_SOURCE_FOLDER="${12}"
 INPUT_INITIAL_COMMIT_MESSAGE="${13}"
-INPUT_IS_TAG="${14}"
-GITHUB_REF="${15}"
+GITHUB_REF="${14}"
+INPUT_TAG_BRANCH="${15}"
+
+
 
 # Check for required inputs.
 #
@@ -39,9 +41,21 @@ REF="${GITHUB_BASE_REF:-${GITHUB_REF}}"
 REF_BRANCH=$(echo "${REF}" | rev | cut -d/ -f1 | rev)
 [ -z "$REF_BRANCH" ] && echo 2>&1 "No ref branch" && exit 1
 
+TAG_VALUE=${GITHUB_REF/refs\/tags\//}
+if [[ "$GITHUB_REF" == ${GITHUB_REF/refs\/tags\//}  ]]; then
+  IS_TAG=""
+else
+  IS_TAG="TRUE"
+fi
+if [[ "$GITHUB_REF" == ${BRANCH}  ]]; then
+  BRANCH=$BRANCH
+else
+  BRANCH=$INPUT_TAG_BRANCH
+fi
+
 COMMIT_AUTHOR="${INPUT_COMMIT_AUTHOR:-${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>}"
 COMMIT_MESSAGE="${INPUT_COMMIT_MESSAGE:-[${GITHUB_WORKFLOW}] Publish \r\n\r\nfrom ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}} REV:${GITHUB_SHA}"
-INITIAL_COMMIT_MESSAGE="${INPUT_INITIAL_COMMIT_MESSAGE}"
+INITIAL_COMMIT_MESSAGE="${INPUT_INITIAL_COMMIT_MESSAGE} \r\n\r\nfrom ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}} REV:${GITHUB_SHA}"
 
 # Calculate the real source path.
 #
@@ -113,6 +127,15 @@ rsync -a --quiet --delete --exclude ".git" "${SOURCE_PATH}/" "${TARGET_PATH}" ||
 # Check changes
 #
 if [ -z "$(git status -s)" ] ; then
+   if [ "${IS_TAG}" == "TRUE"] ; then
+     git tag ${TAG_VALUE}
+     if [ -z "${INPUT_DRYRUN}" ] ; then
+       echo "Pushing to tag ${REMOTE}:${TAG_VALUE}"
+       git push origin ${TAG_VALUE}
+       else
+           echo "[DRY-RUN] Not pushing tag to ${REMOTE}:${TAG_VALUE}"
+       fi
+    fi
     echo "No changes, script exited"
     exit 0
 fi
@@ -137,4 +160,14 @@ if [ -z "${INPUT_DRYRUN}" ] ; then
     git push origin "${BRANCH}" || exit 1
 else
     echo "[DRY-RUN] Not pushing to ${REMOTE}:${BRANCH}"
+fi
+
+if [ "${IS_TAG}" == "TRUE"] ; then
+ git tag ${TAG_VALUE}
+ if [ -z "${INPUT_DRYRUN}" ] ; then
+   echo "Pushing to tag ${REMOTE}:${TAG_VALUE}"
+   git push origin ${TAG_VALUE}
+   else
+       echo "[DRY-RUN] Not pushing tag to ${REMOTE}:${TAG_VALUE}"
+   fi
 fi

@@ -44,12 +44,12 @@ inputs:
   initial_commit_message:
     description: 'Commit message if branch didnt exist'
     default: 'Initial commit'
-  is_tag:
-    description: 'Is Tag Push  (set to non-empty string to make tag)'
-    default: ''
   git_ref:
     description: 'GitHub Reference ${ { github.ref } }'
-    default: ''
+    required: true
+  tag_branch:
+    description: 'Destination branch if commit is a tag'
+    default: 'main'
 outputs:
   commit_hash:
     description: 'Hash of the new commit'
@@ -72,5 +72,5 @@ runs:
     - ${{ inputs.working_directory }}
     - ${{ inputs.initial_source_folder }}
     - ${{ inputs.initial_commit_message }}
-    - ${{ inputs.is_tag }}
     - ${{ inputs.git_ref }}
+    - ${{ inputs.tag_branch }}
