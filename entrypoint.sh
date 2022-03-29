@@ -52,6 +52,12 @@ else
   IS_TAG="TRUE"
 fi
 
+
+if [[ "$GITHUB_REF" != "${GITHUB_REF/refs\/pull\//}"  ]]; then
+    echo "Is a pull request, script exited"
+    exit 0
+fi
+
 COMMIT_AUTHOR="${INPUT_COMMIT_AUTHOR:-${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>}"
 GIT_MESSAGE=$(git log -1 --pretty=format:%B)
 COMMIT_MESSAGE="${INPUT_COMMIT_MESSAGE:-[${GITHUB_WORKFLOW}] Publish
