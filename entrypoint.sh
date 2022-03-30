@@ -137,6 +137,13 @@ if [ "$(git ls-remote --heads "${REMOTE}" "${BRANCH}"  | wc -l)" == 0 ] ; then
     git checkout "${INPUT_BASE_BRANCH}" || exit 1
     git pull origin "${INPUT_BASE_BRANCH}" || exit 1
     git checkout -b "${BRANCH}" || exit 1
+    
+    if [ -z "${INPUT_DRYRUN}" ] ; then
+              echo "Pushing to ${REMOTE}:${BRANCH}"
+              git push origin "${BRANCH}" || exit 1
+          else
+              echo "[DRY-RUN] Not pushing to ${REMOTE}:${BRANCH}"
+    fi
 
 else
     git fetch --depth 1 origin "${BRANCH}" || exit 1
