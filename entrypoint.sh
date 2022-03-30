@@ -18,6 +18,7 @@ INPUT_INITIAL_SOURCE_FOLDER="${12}"
 INPUT_INITIAL_COMMIT_MESSAGE="${13}"
 GITHUB_REF="${14}"
 INPUT_TAG_BRANCH="${15}"
+INPUT_BASE_BRANCH="${16}"
 
 
 
@@ -106,26 +107,38 @@ git config --global --list
 # Fetch initial (current contents).
 #
 echo "Fetching ${REMOTE}:${BRANCH}"
-if [ "$(git ls-remote --heads "${REMOTE}" "${BRANCH}"  | wc -l)" == 0 ] ; then 
-    echo "Initialising ${BRANCH} branch"
-    git checkout --orphan "${BRANCH}"
-    TARGET_PATH="${WORK_DIR}/${TARGET_FOLDER}"
-    echo "Populating ${TARGET_PATH}"
-    mkdir -p "${TARGET_PATH}" || exit 1
-    rsync -a --quiet --delete --exclude ".git" "${INITIAL_SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
+if [ "$(git ls-remote --heads "${REMOTE}" "${BRANCH}"  | wc -l)" == 0 ] ; then
 
-    echo "Creating initial commit"
-    git add "${TARGET_PATH}" || exit 1
-    git commit -m "${INITIAL_COMMIT_MESSAGE}" --author "${COMMIT_AUTHOR} <${COMMIT_AUTHOR}@users.noreply.github.com>" || exit 1
-    COMMIT_HASH="$(git rev-parse HEAD)"
-    echo "Created commit ${COMMIT_HASH}"
+    if [ "$(git ls-remote --heads "${REMOTE}" "${INPUT_BASE_BRANCH}"  | wc -l)" == 0 ] ; then
+      #Setup base branch if missing
+      echo "Initialising ${INPUT_BASE_BRANCH} branch"
+      git checkout --orphan "${INPUT_BASE_BRANCH}"
+      TARGET_PATH="${WORK_DIR}/${TARGET_FOLDER}"
+      echo "Populating ${TARGET_PATH}"
+      mkdir -p "${TARGET_PATH}" || exit 1
+      rsync -a --quiet --delete --exclude ".git" "${INITIAL_SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
 
-    if [ -z "${INPUT_DRYRUN}" ] ; then
-        echo "Pushing to ${REMOTE}:${BRANCH}"
-        git push origin "${BRANCH}" || exit 1
-    else
-        echo "[DRY-RUN] Not pushing to ${REMOTE}:${BRANCH}"
+      echo "Creating initial commit"
+      git add "${TARGET_PATH}" || exit 1
+      git commit -m "${INITIAL_COMMIT_MESSAGE}" --author "${COMMIT_AUTHOR} <${COMMIT_AUTHOR}@users.noreply.github.com>" || exit 1
+      COMMIT_HASH="$(git rev-parse HEAD)"
+      echo "Created commit ${COMMIT_HASH}"
+
+      if [ -z "${INPUT_DRYRUN}" ] ; then
+          echo "Pushing to ${REMOTE}:${BRANCH}"
+          git push origin "${BRANCH}" || exit 1
+      else
+          echo "[DRY-RUN] Not pushing to ${REMOTE}:${BRANCH}"
+      fi
     fi
+
+    #Clone from base branch for repo
+    git fetch --depth 1 origin "${INPUT_BASE_BRANCH}" || exit 1
+    git checkout "${INPUT_BASE_BRANCH}" || exit 1
+    git pull origin "${INPUT_BASE_BRANCH}" || exit 1
+    git checkout -b "${BRANCH}" || exit 1
+    git pull origin "${BRANCH}" || exit 1
+
 else
     git fetch --depth 1 origin "${BRANCH}" || exit 1
     git checkout -b "${BRANCH}" || exit 1

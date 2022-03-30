@@ -50,6 +50,9 @@ inputs:
   tag_branch:
     description: 'Destination branch if commit is a tag'
     default: 'main'
+  base_branch:
+    description: 'Initial branch to clone if Destination branch does not exist'
+    default: 'main'
 outputs:
   commit_hash:
     description: 'Hash of the new commit'
@@ -74,3 +77,4 @@ runs:
     - ${{ inputs.initial_commit_message }}
     - ${{ inputs.git_ref }}
     - ${{ inputs.tag_branch }}
+    - ${{ inputs.base_branch }}
