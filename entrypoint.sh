@@ -137,7 +137,6 @@ if [ "$(git ls-remote --heads "${REMOTE}" "${BRANCH}"  | wc -l)" == 0 ] ; then
     git checkout "${INPUT_BASE_BRANCH}" || exit 1
     git pull origin "${INPUT_BASE_BRANCH}" || exit 1
     git checkout -b "${BRANCH}" || exit 1
-    git pull origin "${BRANCH}" || exit 1
 
 else
     git fetch --depth 1 origin "${BRANCH}" || exit 1
