@@ -20,7 +20,7 @@ GITHUB_REF="${14}"
 INPUT_TAG_BRANCH="${15}"
 INPUT_BASE_BRANCH="${16}"
 
-
+git config --global --add safe.directory /github/workspace
 
 # Check for required inputs.
 #
