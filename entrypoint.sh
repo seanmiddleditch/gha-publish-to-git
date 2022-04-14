@@ -90,6 +90,7 @@ echo "Publishing ${SOURCE_FOLDER} to ${REMOTE}:${BRANCH}/${TARGET_FOLDER}"
 #
 WORK_DIR="${INPUT_WORKDIR:-$(mktemp -d "${HOME}/gitrepo.XXXXXX")}"
 [ -z "${WORK_DIR}" ] && echo >&2 "::error::Failed to create temporary working directory" && exit 1
+git config --global --add safe.directory "${WORK_DIR}" || exit 1
 cd "${WORK_DIR}"
 
 # Initialize git repo and configure for remote access.
