@@ -1,5 +1,6 @@
-#/bin/bash
+#!/bin/bash
 
+set -x
 # Name the Docker inputs.
 #
 INPUT_REPOSITORY="$1"
@@ -15,11 +16,16 @@ INPUT_DRYRUN="${10}"
 INPUT_WORKDIR="${11}"
 INPUT_INITIAL_SOURCE_FOLDER="${12}"
 INPUT_INITIAL_COMMIT_MESSAGE="${13}"
+GITHUB_REF="${14}"
+INPUT_TAG_BRANCH="${15}"
+INPUT_BASE_BRANCH="${16}"
+
+git config --global --add safe.directory /github/workspace
 
 # Check for required inputs.
 #
 [ -z "$INPUT_BRANCH" ] && echo >&2 "::error::'branch' is required" && exit 1
-[ -z "$INPUT_GITHUB_TOKEN" -a -z "$INPUT_GITHUB_PAT" ] && echo >&2 "::error::'github_token' or 'github_pat' is required" && exit 1
+[ -z "$INPUT_GITHUB_TOKEN" -a -z "$INPUT_GITHUB_PAT" ] && echo >&2 "::error::'github_token' or 'github_pat' is required -- skipping" && exit 0
 
 # Set state from inputs or defaults.
 #
@@ -37,9 +43,35 @@ REF="${GITHUB_BASE_REF:-${GITHUB_REF}}"
 REF_BRANCH=$(echo "${REF}" | rev | cut -d/ -f1 | rev)
 [ -z "$REF_BRANCH" ] && echo 2>&1 "No ref branch" && exit 1
 
-COMMIT_AUTHOR="${INPUT_AUTHOR:-${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>}"
-COMMIT_MESSAGE="${INPUT_COMMIT_MESSAGE:-[${GITHUB_WORKFLOW}] Publish from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}}"
-INITIAL_COMMIT_MESSAGE="${INPUT_INITIAL_COMMIT_MESSAGE}"
+TAG_VALUE=${GITHUB_REF/refs\/tags\//}
+if [[ "$GITHUB_REF" == "${GITHUB_REF/refs\/tags\//}"  ]]; then
+  IS_TAG=""
+else
+  git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+  GIT_TAG_MESSAGE=$(git tag -l --format='%(contents)' "${TAG_VALUE}")
+  BRANCH=$INPUT_TAG_BRANCH
+  IS_TAG="TRUE"
+fi
+
+
+if [[ "$GITHUB_REF" != "${GITHUB_REF/refs\/pull\//}"  ]]; then
+    echo "Is a pull request, script exited"
+    exit 0
+fi
+
+COMMIT_AUTHOR="${INPUT_COMMIT_AUTHOR:-${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>}"
+GIT_MESSAGE=$(git log -1 --pretty=format:%B)
+COMMIT_MESSAGE="${INPUT_COMMIT_MESSAGE:-[${GITHUB_WORKFLOW}] Publish
+
+
+from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER}} REV:${GITHUB_SHA}
+
+${GIT_MESSAGE}"
+INITIAL_COMMIT_MESSAGE="${INPUT_INITIAL_COMMIT_MESSAGE}
+
+from ${GITHUB_REPOSITORY}:${REF_BRANCH}/${SOURCE_FOLDER} REV:${GITHUB_SHA}
+
+${GIT_MESSAGE}"
 
 # Calculate the real source path.
 #
@@ -58,39 +90,62 @@ echo "Publishing ${SOURCE_FOLDER} to ${REMOTE}:${BRANCH}/${TARGET_FOLDER}"
 #
 WORK_DIR="${INPUT_WORKDIR:-$(mktemp -d "${HOME}/gitrepo.XXXXXX")}"
 [ -z "${WORK_DIR}" ] && echo >&2 "::error::Failed to create temporary working directory" && exit 1
+git config --global --add safe.directory "${WORK_DIR}" || exit 1
 cd "${WORK_DIR}"
 
 # Initialize git repo and configure for remote access.
 #
 echo "Initializing repository with remote ${REMOTE}"
 git init || exit 1
-git config --local user.email "${GITHUB_ACTOR}@users.noreply.github.com" || exit 1
-git config --local user.name  "${GITHUB_ACTOR}" || exit 1
+ls
+git config --global user.email "${COMMIT_AUTHOR}@users.noreply.github.com" || exit 1
+echo "git config --global user.email ${COMMIT_AUTHOR}@users.noreply.github.com"
+git config --global user.name "${COMMIT_AUTHOR}" || exit 1
+echo "git config --global user.name  ${COMMIT_AUTHOR}"
 git remote add origin "${REMOTE}" || exit 1
+git config --global --list
 
 # Fetch initial (current contents).
 #
 echo "Fetching ${REMOTE}:${BRANCH}"
-if [ "$(git ls-remote --heads "${REMOTE}" "${BRANCH}"  | wc -l)" == 0 ] ; then 
-    echo "Initialising ${BRANCH} branch"
-    git checkout --orphan ${BRANCH}
-    TARGET_PATH="${WORK_DIR}/${TARGET_FOLDER}"
-    echo "Populating ${TARGET_PATH}"
-    mkdir -p "${TARGET_PATH}" || exit 1
-    rsync -a --quiet --delete --exclude ".git" "${INITIAL_SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
+if [ "$(git ls-remote --heads "${REMOTE}" "${BRANCH}"  | wc -l)" == 0 ] ; then
 
-    echo "Creating initial commit"
-    git add "${TARGET_PATH}" || exit 1
-    git commit -m "${INITIAL_COMMIT_MESSAGE}" --author "${COMMIT_AUTHOR}" || exit 1
-    COMMIT_HASH="$(git rev-parse HEAD)"
-    echo "Created commit ${COMMIT_HASH}"
+    if [ "$(git ls-remote --heads "${REMOTE}" "${INPUT_BASE_BRANCH}"  | wc -l)" == 0 ] ; then
+      #Setup base branch if missing
+      echo "Initialising ${INPUT_BASE_BRANCH} branch"
+      git checkout --orphan "${INPUT_BASE_BRANCH}"
+      TARGET_PATH="${WORK_DIR}/${TARGET_FOLDER}"
+      echo "Populating ${TARGET_PATH}"
+      mkdir -p "${TARGET_PATH}" || exit 1
+      rsync -a --quiet --delete --exclude ".git" "${INITIAL_SOURCE_PATH}/" "${TARGET_PATH}" || exit 1
 
-    if [ -z "${INPUT_DRYRUN}" ] ; then
-        echo "Pushing to ${REMOTE}:${BRANCH}"
-        git push origin "${BRANCH}" || exit 1
-    else
-        echo "[DRY-RUN] Not pushing to ${REMOTE}:${BRANCH}"
+      echo "Creating initial commit"
+      git add "${TARGET_PATH}" || exit 1
+      git commit -m "${INITIAL_COMMIT_MESSAGE}" --author "${COMMIT_AUTHOR} <${COMMIT_AUTHOR}@users.noreply.github.com>" || exit 1
+      COMMIT_HASH="$(git rev-parse HEAD)"
+      echo "Created commit ${COMMIT_HASH}"
+
+      if [ -z "${INPUT_DRYRUN}" ] ; then
+          echo "Pushing to ${REMOTE}:${BRANCH}"
+          git push origin "${BRANCH}" || exit 1
+      else
+          echo "[DRY-RUN] Not pushing to ${REMOTE}:${BRANCH}"
+      fi
     fi
+
+    #Clone from base branch for repo
+    git fetch --depth 1 origin "${INPUT_BASE_BRANCH}" || exit 1
+    git checkout "${INPUT_BASE_BRANCH}" || exit 1
+    git pull origin "${INPUT_BASE_BRANCH}" || exit 1
+    git checkout -b "${BRANCH}" || exit 1
+    
+    if [ -z "${INPUT_DRYRUN}" ] ; then
+              echo "Pushing to ${REMOTE}:${BRANCH}"
+              git push origin "${BRANCH}" || exit 1
+          else
+              echo "[DRY-RUN] Not pushing to ${REMOTE}:${BRANCH}"
+    fi
+
 else
     git fetch --depth 1 origin "${BRANCH}" || exit 1
     git checkout -b "${BRANCH}" || exit 1
@@ -107,6 +162,15 @@ rsync -a --quiet --delete --exclude ".git" "${SOURCE_PATH}/" "${TARGET_PATH}" ||
 # Check changes
 #
 if [ -z "$(git status -s)" ] ; then
+   if [ "${IS_TAG}" = "TRUE" ] ; then
+     git tag "${TAG_VALUE}" -m "$GIT_TAG_MESSAGE"
+     if [ -z "${INPUT_DRYRUN}" ] ; then
+       echo "Pushing to tag ${REMOTE}:${TAG_VALUE}"
+       git push origin "${TAG_VALUE}"
+       else
+           echo "[DRY-RUN] Not pushing tag to ${REMOTE}:${TAG_VALUE}"
+       fi
+    fi
     echo "No changes, script exited"
     exit 0
 fi
@@ -115,7 +179,7 @@ fi
 #
 echo "Creating commit"
 git add "${TARGET_PATH}" || exit 1
-git commit -m "${COMMIT_MESSAGE}" --author "${COMMIT_AUTHOR}" || exit 1
+git commit -m "${COMMIT_MESSAGE}" --author "${COMMIT_AUTHOR} <${COMMIT_AUTHOR}@users.noreply.github.com>" || exit 1
 COMMIT_HASH="$(git rev-parse HEAD)"
 echo "Created commit ${COMMIT_HASH}"
 
@@ -131,4 +195,14 @@ if [ -z "${INPUT_DRYRUN}" ] ; then
     git push origin "${BRANCH}" || exit 1
 else
     echo "[DRY-RUN] Not pushing to ${REMOTE}:${BRANCH}"
+fi
+
+if [ "${IS_TAG}" = "TRUE" ]; then
+  git tag "${TAG_VALUE}" -m "$GIT_TAG_MESSAGE"
+ if [ -z "${INPUT_DRYRUN}" ] ; then
+   echo "Pushing to tag ${REMOTE}:${TAG_VALUE}"
+   git push origin "${TAG_VALUE}"
+   else
+       echo "[DRY-RUN] Not pushing tag to ${REMOTE}:${TAG_VALUE}"
+   fi
 fi

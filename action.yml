@@ -44,6 +44,15 @@ inputs:
   initial_commit_message:
     description: 'Commit message if branch didnt exist'
     default: 'Initial commit'
+  git_ref:
+    description: 'GitHub Reference ${ { github.ref } }'
+    required: true
+  tag_branch:
+    description: 'Destination branch if commit is a tag'
+    default: 'main'
+  base_branch:
+    description: 'Initial branch to clone if Destination branch does not exist'
+    default: 'main'
 outputs:
   commit_hash:
     description: 'Hash of the new commit'
@@ -66,3 +75,6 @@ runs:
     - ${{ inputs.working_directory }}
     - ${{ inputs.initial_source_folder }}
     - ${{ inputs.initial_commit_message }}
+    - ${{ inputs.git_ref }}
+    - ${{ inputs.tag_branch }}
+    - ${{ inputs.base_branch }}
