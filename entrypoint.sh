@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/sh -l
 
 # Name the Docker inputs.
 #
